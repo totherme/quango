@@ -7,9 +7,9 @@ import (
 )
 
 var _ = Describe("The quango matcher", func() {
-	Context("when actual is not a boolean function", func() {
+	Context("when actual is not a function", func() {
 		It("should error", func() {
-			_, err := quango.Hold().Match("not even a function, let alone a boolean one")
+			_, err := quango.Hold().Match("not a function")
 			Expect(err).To(HaveOccurred())
 		})
 	})
@@ -26,6 +26,18 @@ var _ = Describe("The quango matcher", func() {
 		Context("when actual is of type float->float->bool", func() {
 			It("should succeed", func() {
 				Expect(func(x, y float64) bool { return math.Abs(x)+math.Abs(y) >= math.Abs(x) }).To(quango.Hold())
+			})
+		})
+
+		Context("when actual is of type bool->void", func() {
+			It("should succeed", func() {
+				Expect(func(b bool) {}).To(quango.Hold())
+			})
+		})
+
+		Context("when actual is of type float->float->void", func() {
+			It("should succeed", func() {
+				Expect(func(a, b float64) {}).To(quango.Hold())
 			})
 		})
 	})
@@ -50,6 +62,15 @@ var _ = Describe("The quango matcher", func() {
 			Expect(pass).To(BeFalse())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(matcher.FailureMessage(prop)).To(ContainSubstring("true"))
+		})
+
+		Context("when actual is of type bool->void", func() {
+			// Pended for now, since this will require a gomega PR to make work.
+			PIt("should still fail", func() {
+				Expect(func(b bool) {
+					Expect(false).To(BeTrue())
+				}).NotTo(quango.Hold())
+			})
 		})
 	})
 })

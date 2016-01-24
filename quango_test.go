@@ -34,6 +34,12 @@ var _ = Describe("The quango matcher", func() {
 				Expect(func(b bool) {}).To(quango.Hold())
 			})
 		})
+
+		Context("when actual is of type float->float->void", func() {
+			It("should succeed", func() {
+				Expect(func(a, b float64) {}).To(quango.Hold())
+			})
+		})
 	})
 
 	Context("when actual represents a property that doesn't hold", func() {
@@ -56,6 +62,14 @@ var _ = Describe("The quango matcher", func() {
 			Expect(pass).To(BeFalse())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(matcher.FailureMessage(prop)).To(ContainSubstring("true"))
+		})
+
+		Context("when actual is of type bool->void", func() {
+			It("should still fail", func() {
+				Expect(func(b bool) {
+					Expect(false).To(BeTrue())
+				}).NotTo(quango.Hold())
+			})
 		})
 	})
 })

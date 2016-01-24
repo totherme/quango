@@ -20,12 +20,14 @@ func (q *quangoMatcher) Match(actual interface{}) (bool, error) {
 		return false, fmt.Errorf("Expected a function, not a %s", typeOfActual)
 	}
 	if typeOfActual.NumOut() == 0 {
+		actualValue := reflect.ValueOf(actual)
 		newActual := func(args []reflect.Value) []reflect.Value {
 			defer func() []reflect.Value {
 				recover()
 				return []reflect.Value{reflect.ValueOf(false)}
 			}()
-			reflect.ValueOf(actual).Call(args)
+
+			actualValue.Call(args)
 			return []reflect.Value{reflect.ValueOf(true)}
 		}
 
@@ -34,8 +36,8 @@ func (q *quangoMatcher) Match(actual interface{}) (bool, error) {
 			inType = append(inType, typeOfActual.In(i))
 		}
 
-		actual = reflect.MakeFunc(reflect.FuncOf(inType, []reflect.Type{reflect.TypeOf(true)}, false), newActual)
-
+		funcType := reflect.FuncOf(inType, []reflect.Type{reflect.TypeOf(true)}, false)
+		actual = reflect.MakeFunc(funcType, newActual).Interface()
 	}
 
 	err := quick.Check(actual, nil)

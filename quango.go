@@ -2,6 +2,7 @@ package quango
 
 import (
 	"fmt"
+	"reflect"
 	"testing/quick"
 )
 
@@ -14,6 +15,29 @@ func Hold() *quangoMatcher {
 }
 
 func (q *quangoMatcher) Match(actual interface{}) (bool, error) {
+	typeOfActual := reflect.TypeOf(actual)
+	if typeOfActual.Kind() != reflect.Func {
+		return false, fmt.Errorf("Expected a function, not a %s", typeOfActual)
+	}
+	if typeOfActual.NumOut() == 0 {
+		newActual := func(args []reflect.Value) []reflect.Value {
+			defer func() []reflect.Value {
+				recover()
+				return []reflect.Value{reflect.ValueOf(false)}
+			}()
+			reflect.ValueOf(actual).Call(args)
+			return []reflect.Value{reflect.ValueOf(true)}
+		}
+
+		inType := []reflect.Type{}
+		for i := 0; i < typeOfActual.NumIn(); i++ {
+			inType = append(inType, typeOfActual.In(i))
+		}
+
+		actual = reflect.MakeFunc(reflect.FuncOf(inType, []reflect.Type{reflect.TypeOf(true)}, false), newActual)
+
+	}
+
 	err := quick.Check(actual, nil)
 
 	q.counterexample = "False"

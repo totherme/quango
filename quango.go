@@ -21,14 +21,21 @@ func (q *quangoMatcher) Match(actual interface{}) (bool, error) {
 	}
 	if typeOfActual.NumOut() == 0 {
 		actualValue := reflect.ValueOf(actual)
-		newActual := func(args []reflect.Value) []reflect.Value {
-			defer func() []reflect.Value {
-				recover()
-				return []reflect.Value{reflect.ValueOf(false)}
+
+		newActual := func(args []reflect.Value) (returnVals []reflect.Value) {
+			returnVals = []reflect.Value{reflect.ValueOf(true)}
+
+			defer func() {
+				err := recover()
+				if err != nil {
+					fmt.Println("in the conditional")
+					returnVals = []reflect.Value{reflect.ValueOf(false)}
+				}
 			}()
 
 			actualValue.Call(args)
-			return []reflect.Value{reflect.ValueOf(true)}
+
+			return
 		}
 
 		inType := []reflect.Type{}

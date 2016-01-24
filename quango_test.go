@@ -65,7 +65,7 @@ var _ = Describe("The quango matcher", func() {
 		})
 
 		Context("when actual is of type bool->void", func() {
-			It("should still fail", func() {
+			FIt("should still fail", func() {
 				Expect(func(b bool) {
 					Expect(false).To(BeTrue())
 				}).NotTo(quango.Hold())
